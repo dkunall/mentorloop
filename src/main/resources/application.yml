@@ -1,0 +1,102 @@
+spring:
+  application:
+    name: mentorloop
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${MENTORLOOP_DB_URL:jdbc:postgresql://localhost:5432/mentorloop}
+    username: ${MENTORLOOP_DB_USER:mentorloop}
+    password: ${MENTORLOOP_DB_PASSWORD:}
+    hikari:
+      maximum-pool-size: 20
+  flyway:
+    enabled: true
+  data:
+    redis:
+      host: ${MENTORLOOP_REDIS_HOST:localhost}
+      port: ${MENTORLOOP_REDIS_PORT:6379}
+      password: ${MENTORLOOP_REDIS_PASSWORD:}
+  kafka:
+    bootstrap-servers: ${MENTORLOOP_KAFKA:localhost:9092}
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+        linger.ms: 5
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+    listener:
+      ack-mode: record
+  mail:
+    host: ${MENTORLOOP_SMTP_HOST:localhost}
+    port: ${MENTORLOOP_SMTP_PORT:1025}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${MENTORLOOP_ISSUER:http://localhost:8080/default}
+  servlet:
+    multipart:
+      enabled: false
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: ${MENTORLOOP_PORT:8080}
+  shutdown: graceful
+  tomcat:
+    max-swallow-size: 1MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    distribution:
+      percentiles:
+        mentorloop.tutor.answer: 0.5,0.95,0.99
+
+mentorloop:
+  security:
+    instructor-subjects: ${MENTORLOOP_INSTRUCTOR_SUBJECTS:}
+    admin-subjects: ${MENTORLOOP_ADMIN_SUBJECTS:}
+  mail:
+    from: ${MENTORLOOP_MAIL_FROM:tutor@mentorloop.example.test}
+    learner-domain: ${MENTORLOOP_LEARNER_DOMAIN:learners.example.test}
+  mastery:
+    p-init: 0.2
+    p-learn: 0.15
+    p-slip: 0.1
+    p-guess: 0.2
+    threshold: 0.95
+  reviews:
+    day-length: ${MENTORLOOP_DAY_LENGTH:P1D}
+    slow-millis: 30000
+    reminder-every: ${MENTORLOOP_REMINDER_EVERY:PT15M}
+  quiz:
+    size: 5
+    time-limit: PT30M
+  calibration:
+    min-responses: ${MENTORLOOP_CALIBRATION_MIN:30}
+    every: ${MENTORLOOP_CALIBRATION_EVERY:PT10M}
+  tutor:
+    top-k: 4
+    per-minute: ${MENTORLOOP_TUTOR_PER_MINUTE:10}
+    max-question-chars: 1000
+    retention: P90D
+  llm:
+    provider: ${MENTORLOOP_LLM_PROVIDER:scripted}
+    base-url: ${MENTORLOOP_LLM_BASE_URL:http://localhost:8787}
+    model: ${MENTORLOOP_LLM_MODEL:tutor-small}
+    api-key: ${MENTORLOOP_LLM_API_KEY:}
+    timeout: ${MENTORLOOP_LLM_TIMEOUT:PT20S}
+  jobs:
+    enabled: ${MENTORLOOP_JOBS_ENABLED:true}
