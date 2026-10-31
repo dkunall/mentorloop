@@ -1,4 +1,4 @@
-package com.mentorloop.adaptive.domain;
+package com.mentorloop.course.domain;
 
 import com.mentorloop.shared.domain.DomainRuleException;
 

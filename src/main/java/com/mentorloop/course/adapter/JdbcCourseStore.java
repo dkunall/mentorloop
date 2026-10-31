@@ -1,6 +1,6 @@
 package com.mentorloop.course.adapter;
 
-import com.mentorloop.adaptive.domain.ConceptGraph;
+import com.mentorloop.course.domain.ConceptGraph;
 import com.mentorloop.course.application.CourseStore;
 import com.mentorloop.course.application.CourseViews.Concept;
 import com.mentorloop.course.application.CourseViews.Course;
