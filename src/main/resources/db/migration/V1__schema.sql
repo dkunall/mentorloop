@@ -168,6 +168,7 @@ create table review_card (
     course_id      uuid not null,
     learner        text not null,
     item_id        uuid not null,
+    concept_id     uuid not null,   -- the item's primary concept, so the due list needs no join into assessment
     repetitions    int not null,
     interval_days  int not null,
     ease           double precision not null,
@@ -236,6 +237,14 @@ create table tutor_message (
 );
 create index tutor_message_age on tutor_message (created_at);
 create index tutor_message_course on tutor_message (course_id, created_at);
+
+-- consumers record each event id they handled, in the same transaction as the effect
+create table processed_event (
+    consumer  text not null,
+    event_id  uuid not null,
+    at        timestamptz not null,
+    primary key (consumer, event_id)
+);
 
 -- ---------- outbox ----------
 create table outbox (
