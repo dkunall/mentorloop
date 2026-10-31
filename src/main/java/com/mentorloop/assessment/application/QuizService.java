@@ -8,6 +8,7 @@ import com.mentorloop.shared.config.MentorLoopProperties;
 import com.mentorloop.shared.domain.DomainRuleException;
 import com.mentorloop.shared.error.ApiException;
 import com.mentorloop.shared.security.Caller;
+import com.mentorloop.shared.security.Role;
 import com.mentorloop.tutor.application.QuizStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -101,6 +102,9 @@ public class QuizService implements QuizStatus {
     public QuizView get(Caller caller, UUID quizId) {
         QuizStore.Quiz q = quizzes.byId(quizId).orElseThrow(() -> ApiException.notFound("Quiz"));
         if (!q.learner().equals(caller.subject())) {
+            if (caller.role() == Role.LEARNER) {
+                throw ApiException.notFound("Quiz");
+            }
             courses.requireOwned(caller, q.courseId());
         }
         return view(q);

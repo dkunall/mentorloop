@@ -31,6 +31,9 @@ public class ProblemHandler extends ResponseEntityExceptionHandler {
         ResponseEntity.BodyBuilder response = ResponseEntity.status(status);
         ProblemDetail body = problem(status, e.code(), e.getMessage());
         e.details().forEach(body::setProperty);
+        if (e.details().get("retryAfterSeconds") instanceof Number n) {
+            response.header(HttpHeaders.RETRY_AFTER, Long.toString(Math.max(1, n.longValue())));
+        }
         return response.body(body);
     }
 
