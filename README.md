@@ -124,7 +124,7 @@ demo passed
 The question was "What order does a stack keep items in?". The answer also quotes the Queues lesson, because that sentence shares most of its words with the question. That's the scripted provider extracting, not reasoning, on top of lexical retrieval. A real model would probably drop it, but nothing here shows that.
 
 Tests: `mvn verify` runs:
-- 55 unit tests, including 7 ArchUnit rules (BKT, SM-2, the recommender, graders, Rasch, the concept graph, retrieval parts, citations and the guard, and both LLM providers, the OpenAI-compatible one against WireMock)
+- 49 unit tests, including 7 ArchUnit rules (BKT, SM-2, the recommender, graders, Rasch, the concept graph, retrieval parts, citations and the guard, and both LLM providers, the OpenAI-compatible one against WireMock)
 - 20 integration tests on Testcontainers (pgvector Postgres, Redis, Kafka, Mailpit, mock OAuth2): authoring, attempts, learning flow, replay, reviews and the tutor
 
 The concurrency and idempotency checks among them:
