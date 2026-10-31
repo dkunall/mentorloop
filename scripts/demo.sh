@@ -18,7 +18,7 @@ DRAFT=$(expect 201 "$INS" POST "/v1/courses/$COURSE/items:generate" '{"concept":
 expect 201 "$ME" POST "/v1/courses/$COURSE/enrollments" '{}' > /dev/null
 expect 201 "$OTHER" POST "/v1/courses/$COURSE/enrollments" '{}' > /dev/null
 check "learner cannot see a draft" "$(call "$ME" GET "/v1/items/$DRAFT" | tail -1)" 404
-check "draft approved" "$(expect 200 "$INS" POST "/v1/items/$DRAFT:approve" '{}' | jq -r .status)" APPROVED
+check "approved draft goes live" "$(expect 200 "$INS" POST "/v1/items/$DRAFT:approve" '{}' | jq -r .status)" LIVE
 expect 200 "$INS" POST "/v1/items/$DRAFT:retire" '{}' > /dev/null
 
 echo "== learner path: lesson first, then practice; queues locked until stacks is mastered"

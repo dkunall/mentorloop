@@ -1,4 +1,4 @@
-# 06:46, 8 vCPU box, openjdk version "21.0.13" 2026-10-20 LTS
+# 2026-10-31 06:46 IST, 8 vCPU box, openjdk version "21.0.13" 2026-10-20 LTS
 configured pInit=0.2 pLearn=0.15 pSlip=0.1 pGuess=0.2, threshold 0.95, 20000 learners, seed 7
 true params = configured           answers to mastery p50=7 p90=16 max=80; known when flagged 97.8%; never in 200: 0; 88 ns/update
 true pLearn = 0.05 (slower)        answers to mastery p50=12 p90=39 max=199; known when flagged 91.2%; never in 200: 0; 43 ns/update
