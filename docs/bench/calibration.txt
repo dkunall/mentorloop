@@ -1,0 +1,5 @@
+# 06:46, 8 vCPU box
+2000 learners x 20 answers over 60 items = 40000 responses, seed 11
+fit: 34 iterations, best of 5 runs 63.8 ms; difficulty recovery r=0.996, RMSE=0.103 logits (true SD 0.994)
+300 learners x 20 answers over 60 items = 6000 responses, seed 11
+fit: 35 iterations, best of 5 runs 12.7 ms; difficulty recovery r=0.970, RMSE=0.241 logits (true SD 0.994)
