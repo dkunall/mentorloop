@@ -1,0 +1,50 @@
+# 2026-10-31 06:59 IST, compose stack on an 8 vCPU box shared with other workloads; client is bash+curl on the same box
+# three adaptive consumer threads (one per partition); six back-to-back runs after a restart. Compare compose-1-consumer.txt.
+## run 1
+attempts: 20 learners x 25 answers, all learners at once
+  500/500 answered 200 in 1548 ms wall: 323 attempts/s
+  latency ms p50=34.583 p95=74.679 p99=91.83 max=109.788
+  all applied by the adaptive consumer 1033 ms after the last answer returned
+tutor: 20 learners x 2 questions, all at once (scripted provider, so this is retrieval + guard, no model)
+  40/40 answered 200; latency ms p50=27.994 p95=50.14 max=53.894
+## run 2
+attempts: 20 learners x 25 answers, all learners at once
+  500/500 answered 200 in 1298 ms wall: 385 attempts/s
+  latency ms p50=25.357 p95=50.549 p99=61.442 max=68.205
+  all applied by the adaptive consumer 1096 ms after the last answer returned
+tutor: 20 learners x 2 questions, all at once (scripted provider, so this is retrieval + guard, no model)
+  40/40 answered 200; latency ms p50=19.367 p95=31.799 max=34.184
+## run 3
+attempts: 20 learners x 25 answers, all learners at once
+  500/500 answered 200 in 1226 ms wall: 408 attempts/s
+  latency ms p50=17.808 p95=38.219 p99=74.029 max=84.199
+  all applied by the adaptive consumer 611 ms after the last answer returned
+tutor: 20 learners x 2 questions, all at once (scripted provider, so this is retrieval + guard, no model)
+  40/40 answered 200; latency ms p50=12.225 p95=19.19 max=27.138
+## run 4
+attempts: 20 learners x 25 answers, all learners at once
+  500/500 answered 200 in 1067 ms wall: 469 attempts/s
+  latency ms p50=14.094 p95=31.583 p99=39.05 max=43.886
+  all applied by the adaptive consumer 633 ms after the last answer returned
+tutor: 20 learners x 2 questions, all at once (scripted provider, so this is retrieval + guard, no model)
+  40/40 answered 200; latency ms p50=24.013 p95=39.702 max=45.334
+## run 5
+attempts: 20 learners x 25 answers, all learners at once
+  500/500 answered 200 in 1109 ms wall: 451 attempts/s
+  latency ms p50=11.697 p95=30.562 p99=39.214 max=54.522
+  all applied by the adaptive consumer 553 ms after the last answer returned
+tutor: 20 learners x 2 questions, all at once (scripted provider, so this is retrieval + guard, no model)
+  40/40 answered 200; latency ms p50=15.13 p95=32.068 max=34.661
+## run 6
+attempts: 20 learners x 25 answers, all learners at once
+  500/500 answered 200 in 1263 ms wall: 396 attempts/s
+  latency ms p50=22.996 p95=43.858 p99=58.536 max=79.414
+  all applied by the adaptive consumer 799 ms after the last answer returned
+tutor: 20 learners x 2 questions, all at once (scripted provider, so this is retrieval + guard, no model)
+  40/40 answered 200; latency ms p50=14.597 p95=21.975 max=23.444
+## reading
+# 'all applied' lag: 1033, 1096, 611, 633, 553, 799 ms here vs 1588, 1171, 1041 ms with one thread.
+# Lower in 4 of 6 runs than the best single-thread run, but the samples are few and noisy; the relay polls every
+# 200 ms and the progress poll adds ~10 ms per call, so neither number is a pure consumer measurement.
+# Attempt throughput here (323-469/s) is not higher than the earlier runs (308-522/s); the consumer is off the request
+# path, so this change was not expected to move it, and the spread is box noise.
