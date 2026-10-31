@@ -28,7 +28,9 @@ class AttemptEventListener {
         this.json = json;
     }
 
-    @KafkaListener(topics = Outbox.ATTEMPT_EVENTS, groupId = "mentorloop-adaptive")
+    // One thread per partition. Events are keyed by learner, so a learner's events stay on one thread in order;
+    // threads only ever touch different learners' rows.
+    @KafkaListener(topics = Outbox.ATTEMPT_EVENTS, groupId = "mentorloop-adaptive", concurrency = "3")
     void on(String payload) throws IOException {
         EventEnvelope e = json.readValue(payload, EventEnvelope.class);
         switch (e.type()) {

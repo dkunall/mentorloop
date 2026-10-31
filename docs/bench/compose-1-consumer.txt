@@ -1,0 +1,25 @@
+# 2026-10-31 06:56 IST, compose stack on an 8 vCPU box shared with other workloads; client is bash+curl on the same box
+# one adaptive consumer thread for the 3 partitions (before the change to concurrency 3); three back-to-back runs
+## run 1
+attempts: 20 learners x 25 answers, all learners at once
+  500/500 answered 200 in 1623 ms wall: 308 attempts/s
+  latency ms p50=37.562 p95=76.901 p99=115.723 max=141.033
+  all applied by the adaptive consumer 1588 ms after the last answer returned
+tutor: 20 learners x 2 questions, all at once (scripted provider, so this is retrieval + guard, no model)
+  40/40 answered 200; latency ms p50=19.43 p95=33.977 max=38.906
+## run 2
+attempts: 20 learners x 25 answers, all learners at once
+  500/500 answered 200 in 1048 ms wall: 477 attempts/s
+  latency ms p50=13.497 p95=29.989 p99=43.153 max=50.141
+  all applied by the adaptive consumer 1171 ms after the last answer returned
+tutor: 20 learners x 2 questions, all at once (scripted provider, so this is retrieval + guard, no model)
+  40/40 answered 200; latency ms p50=17.177 p95=25.599 max=29.599
+## run 3
+attempts: 20 learners x 25 answers, all learners at once
+  500/500 answered 200 in 958 ms wall: 522 attempts/s
+  latency ms p50=11.119 p95=24.278 p99=34.072 max=41.021
+  all applied by the adaptive consumer 1041 ms after the last answer returned
+tutor: 20 learners x 2 questions, all at once (scripted provider, so this is retrieval + guard, no model)
+  40/40 answered 200; latency ms p50=14.958 p95=26.743 max=27.495
+## relay lag (outbox created_at -> published_at) for run 3's 500 events: p50 113 ms, p95 218 ms, max 234 ms (poll every 200 ms)
+## 20 sequential progress polls with nothing pending took 199 ms, which is inside the 'all applied' figure
