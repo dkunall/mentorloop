@@ -1,0 +1,97 @@
+name: mentorloop
+
+# Secrets come from an env file that scripts/up.sh generates outside the repo; nothing here has a default.
+# Published ports bind to 127.0.0.1 only: 8870 API, 8871 token issuer (stand-in IdP), 8872 Mailpit inbox.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: mentorloop
+      POSTGRES_USER: mentorloop
+      POSTGRES_PASSWORD: ${MENTORLOOP_DB_PASSWORD:?run scripts/up.sh or set MENTORLOOP_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mentorloop -d mentorloop"]
+      interval: 3s
+      retries: 40
+    volumes:
+      - db:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_PASSWORD\" --save '' --appendonly no"]
+    environment:
+      REDIS_PASSWORD: ${MENTORLOOP_REDIS_PASSWORD:?set MENTORLOOP_REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]
+      interval: 3s
+      retries: 30
+
+  kafka:
+    image: apache/kafka:3.8.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_HEAP_OPTS: -Xmx384m -Xms384m
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+    volumes:
+      - kafka:/var/lib/kafka/data
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:8872:8025"
+
+  # Stand-in identity provider: any client_id becomes the token subject. Demo only.
+  oauth:
+    image: ghcr.io/navikt/mock-oauth2-server:2.1.10
+    environment:
+      SERVER_PORT: 8080
+    ports:
+      - "127.0.0.1:8871:8080"
+
+  app:
+    build: .
+    image: mentorloop:local
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      kafka: { condition: service_healthy }
+      mailpit: { condition: service_started }
+      oauth: { condition: service_started }
+    environment:
+      MENTORLOOP_PORT: 8870
+      MENTORLOOP_DB_URL: jdbc:postgresql://db:5432/mentorloop
+      MENTORLOOP_DB_PASSWORD: ${MENTORLOOP_DB_PASSWORD}
+      MENTORLOOP_REDIS_HOST: redis
+      MENTORLOOP_REDIS_PASSWORD: ${MENTORLOOP_REDIS_PASSWORD}
+      MENTORLOOP_KAFKA: kafka:9092
+      MENTORLOOP_SMTP_HOST: mailpit
+      MENTORLOOP_ISSUER: http://oauth:8080/mentorloop
+      MENTORLOOP_INSTRUCTOR_SUBJECTS: ${MENTORLOOP_INSTRUCTOR_SUBJECTS:-instructor@mentorloop.example.test}
+      # The tutor and item generator use the deterministic scripted provider; no model, no key.
+      MENTORLOOP_LLM_PROVIDER: scripted
+      # Demo clock: one review "day" is 20 seconds so spaced repetition is visible in a short session.
+      MENTORLOOP_DAY_LENGTH: ${MENTORLOOP_DAY_LENGTH:-PT20S}
+      MENTORLOOP_REMINDER_EVERY: ${MENTORLOOP_REMINDER_EVERY:-PT30S}
+      MENTORLOOP_CALIBRATION_MIN: ${MENTORLOOP_CALIBRATION_MIN:-5}
+      JAVA_TOOL_OPTIONS: -Xmx640m -XX:+ExitOnOutOfMemoryError
+    ports:
+      - "127.0.0.1:8870:8870"
+
+volumes:
+  db:
+  kafka:
