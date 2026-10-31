@@ -271,6 +271,12 @@ public class CourseService {
         return subject.contains("@") ? subject : subject + "@" + props.mail().learnerDomain();
     }
 
+    /** Row-locks the course for the rest of the caller's transaction, so concurrent writers to it run one at a time. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void lock(UUID courseId) {
+        store.lockCourse(courseId).orElseThrow(() -> ApiException.notFound("Course"));
+    }
+
     private Course ownedLocked(Caller caller, UUID courseId) {
         Course c = store.lockCourse(courseId).orElseThrow(() -> ApiException.notFound("Course"));
         caller.requireOwnerOf(c.owner());

@@ -58,7 +58,7 @@ class AuthoringIT extends ItBase {
     }
 
     @Test
-    void calibrationMovesDifficultyTowardsWhatLearnersFound() {
+    void calibrationMovesDifficultyTowardsWhatLearnersFound() throws Exception {
         World w = world();
         for (int i = 0; i < 4; i++) {
             Learner l = learner(w);
@@ -78,7 +78,16 @@ class AuthoringIT extends ItBase {
         assertThat(size).isLessThan(undo);
         assertThat(undo).isLessThanOrEqualTo(order);
         assertThat(count("select max(version) from item_calibration where item_id = ?::uuid",
-                w.item("stack-size"))).isGreaterThanOrEqualTo(1);
+                w.item("stack-size"))).isEqualTo(1);
+
+        // Six runs at once: each takes the course lock in turn, so every one writes the next version.
+        List<Api.Response> runs = AttemptsIT.race(6,
+                () -> instructor().post("/v1/courses/" + w.courseId() + "/calibration:run", Map.of()));
+        assertThat(runs).extracting(Api.Response::status).containsOnly(200);
+        assertThat(count("select count(*) from item_calibration where item_id = ?::uuid", w.item("stack-size")))
+                .isEqualTo(7);
+        assertThat(count("select max(version) from item_calibration where item_id = ?::uuid",
+                w.item("stack-size"))).isEqualTo(7);
     }
 
     private double difficulty(String itemId) {

@@ -54,6 +54,8 @@ public class CalibrationService {
     }
 
     Run calibrate(UUID courseId) {
+        // Two runs for one course (instructor button and the scheduled job) would both write version n+1.
+        courses.lock(courseId);
         List<RaschCalibrator.Response> responses = attempts.firstResponses(courseId);
         if (responses.isEmpty()) {
             return new Run(courseId, 0, 0, 0, 0);
