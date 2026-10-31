@@ -1,4 +1,4 @@
-package com.mentorloop.adaptive.domain;
+package com.mentorloop.assessment.domain;
 
 import org.junit.jupiter.api.Test;
 
